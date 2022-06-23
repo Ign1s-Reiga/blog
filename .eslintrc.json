@@ -1,3 +1,29 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": "latest",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": [
+      "./tsconfig.json"
+    ]
+  },
+  "rules": {
+    "no-duplicate-imports": "warn",
+    "quotes": ["warn", "single"],
+    "jsx-quotes": ["warn", "prefer-double"],
+    "block-spacing": "warn",
+    "comma-spacing": "warn",
+    "array-bracket-spacing": "warn",
+    "key-spacing": "warn",
+    "arrow-spacing": "warn",
+    "switch-colon-spacing": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-empty-interface": "error",
+    "@next/next/no-img-element": "off"
+  }
 }
