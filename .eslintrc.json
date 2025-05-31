@@ -1,5 +1,4 @@
 {
-  "extends": "next/core-web-vitals",
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "parserOptions": {
@@ -15,15 +14,18 @@
   "rules": {
     "no-duplicate-imports": "warn",
     "quotes": ["warn", "single"],
-    "jsx-quotes": ["warn", "prefer-double"],
+    "jsx-quotes": ["warn", "prefer-single"],
     "block-spacing": "warn",
     "comma-spacing": "warn",
     "array-bracket-spacing": "warn",
     "key-spacing": "warn",
     "arrow-spacing": "warn",
     "switch-colon-spacing": "warn",
+    "indent": ["error", 2],
+    "no-tabs": "warn",
+    "semi": ["error", "always"],
     "@typescript-eslint/ban-ts-comment": "warn",
-    "@typescript-eslint/no-empty-interface": "error",
-    "@next/next/no-img-element": "off"
-  }
+    "@typescript-eslint/no-empty-interface": "error"
+  },
+  "ignorePatterns": ["build/**", "node_modules/**", "out/**"]
 }

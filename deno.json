@@ -1,0 +1,21 @@
+{
+  "license": "MIT",
+  "imports": {
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
+    "@hono/vite-dev-server": "npm:@hono/vite-dev-server@^0.19.1",
+    "@hono/vite-ssg": "npm:@hono/vite-ssg@^0.1.2",
+    "hono": "npm:hono@^4.7.10",
+    "vite": "npm:vite@^6.3.5"
+  },
+  "tasks": {
+    "build": "deno run -A --node-modules-dir npm:vite build",
+    "dev": "deno run -A --node-modules-dir npm:vite",
+    "preview": "deno run -A --node-modules-dir npm:vite preview",
+    "serve": "deno run -NR jsr:@std/http@1/file-server dist/"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx",
+    "allowJs": false
+  }
+}

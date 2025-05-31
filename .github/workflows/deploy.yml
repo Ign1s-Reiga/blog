@@ -1,0 +1,27 @@
+name: deploy-website
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    if: github.actor != 'github'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: yarn
+      - name: Install Packages
+        run: yarn install --immutable --immutable-cache
+      - name: Build Sourcecode
+        run: yarn build
+      - name: Export from Built files
+        run: yarn export
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: out
+          cname: blog.reiga7953.net
