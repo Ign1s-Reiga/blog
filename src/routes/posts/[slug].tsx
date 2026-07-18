@@ -1,14 +1,28 @@
-import { eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { HttpError, page } from 'fresh';
 import { define } from '@/utils.ts';
 import Header from '@/components/Header.tsx';
 import { getDB } from '@/lib/db.ts';
-import { posts } from '@/lib/db-schema.ts';
+import { posts, series } from '@/lib/db-schema.ts';
 import { getPostContent } from '@/lib/content.ts';
 import { parseFrontmatter } from '@/lib/markdown.ts';
 import { extractHeadings, type TocEntry } from '@/lib/toc.ts';
 import TableOfContents from '@/islands/TableOfContents.tsx';
 import { renderMarkdown } from '@ign1s-reiga/marked-presets';
+
+interface SeriesLink {
+  slug: string;
+  title: string;
+}
+
+interface SeriesNav {
+  slug: string;
+  title: string;
+  part: number;
+  total: number;
+  prev: SeriesLink | null;
+  next: SeriesLink | null;
+}
 
 interface ArticleData {
   title: string;
@@ -17,6 +31,7 @@ interface ArticleData {
   updated?: string;
   headings: TocEntry[];
   html: string;
+  series?: SeriesNav;
 }
 
 function formatDate(iso: string): string {
@@ -50,6 +65,30 @@ export const handler = define.handlers({
     const bodyWithoutTitle = body.replace(/^#\s+.+$/m, '').trimStart();
     const html = await renderMarkdown(bodyWithoutTitle);
 
+    // Series navigation: position among the published parts, in order.
+    let seriesNav: SeriesNav | undefined;
+    if (post.seriesId !== null) {
+      const [s] = await db.select().from(series).where(eq(series.id, post.seriesId)).limit(1);
+      if (s) {
+        const members = await db
+          .select({ slug: posts.slug, title: posts.title })
+          .from(posts)
+          .where(and(eq(posts.seriesId, s.id), eq(posts.published, true)))
+          .orderBy(asc(posts.seriesOrder));
+        const index = members.findIndex((m) => m.slug === post.slug);
+        if (index !== -1) {
+          seriesNav = {
+            slug: s.slug,
+            title: s.title,
+            part: index + 1,
+            total: members.length,
+            prev: members[index - 1] ?? null,
+            next: members[index + 1] ?? null,
+          };
+        }
+      }
+    }
+
     return page<ArticleData>({
       title: post.title,
       tags: post.tags ?? [],
@@ -57,6 +96,7 @@ export const handler = define.handlers({
       updated: post.updatedAt.getTime() !== post.createdAt.getTime() ? post.updatedAt.toISOString() : undefined,
       headings: extractHeadings(html),
       html,
+      series: seriesNav,
     });
   },
 });
@@ -94,6 +134,37 @@ export default define.page<typeof handler>(function Article({ data }) {
               )}
             </div>
           </header>
+          {data.series && (
+            <nav class='mb-8 rounded border border-(--ui-border) bg-(--ui-surface) p-4 text-sm'>
+              <p class='text-(--ui-text-secondary)'>
+                Part {data.series.part} of {data.series.total} in{' '}
+                <a href={`/series/${data.series.slug}`} class='font-medium text-(--ui-text-primary) hover:underline'>
+                  {data.series.title}
+                </a>
+              </p>
+              {(data.series.prev || data.series.next) && (
+                <div class='mt-3 flex justify-between gap-4'>
+                  {data.series.prev ? (
+                    <a href={`/posts/${data.series.prev.slug}`} class='text-(--ui-text-secondary) hover:underline'>
+                      ← {data.series.prev.title}
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+                  {data.series.next ? (
+                    <a
+                      href={`/posts/${data.series.next.slug}`}
+                      class='text-right text-(--ui-text-secondary) hover:underline'
+                    >
+                      {data.series.next.title} →
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+                </div>
+              )}
+            </nav>
+          )}
           <TableOfContents headings={data.headings} />
           <div class='md-body text-(--ui-text-secondary) leading-7' dangerouslySetInnerHTML={{ __html: data.html }} />
         </article>

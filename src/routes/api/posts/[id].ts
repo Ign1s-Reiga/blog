@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { define } from '@/utils.ts';
 import { isAdmin, requireAdmin } from '@/lib/auth.ts';
-import { getDB } from '@/lib/db.ts';
+import { getDB, resolveSeriesSlug } from '@/lib/db.ts';
 import { posts } from '@/lib/db-schema.ts';
 import { deletePostContent, getPostContent, movePostContent, putPostContent } from '@/lib/content.ts';
 
@@ -38,7 +38,10 @@ export const handler = define.handlers({
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const { slug, title, content, excerpt, tags, published, publishedAt } = body as Record<string, unknown>;
+    const { slug, title, content, excerpt, tags, published, publishedAt, seriesSlug, seriesOrder } = body as Record<
+      string,
+      unknown
+    >;
 
     const patch: Record<string, unknown> = { updatedAt: new Date() };
     if (typeof slug === 'string' && slug) patch.slug = slug;
@@ -47,8 +50,15 @@ export const handler = define.handlers({
     if (Array.isArray(tags)) patch.tags = tags.filter((t): t is string => typeof t === 'string');
     if (typeof published === 'boolean') patch.published = published;
     if (publishedAt !== undefined) patch.publishedAt = publishedAt ? new Date(publishedAt as string) : null;
+    if (typeof seriesOrder === 'number' || seriesOrder === null) patch.seriesOrder = seriesOrder;
 
     const db = getDB(ctx);
+    if (seriesSlug !== undefined) {
+      const resolved = await resolveSeriesSlug(db, seriesSlug);
+      if (resolved instanceof Response) return resolved;
+      patch.seriesId = resolved.id;
+      if (resolved.id === null) patch.seriesOrder = null;
+    }
     const [existing] = await db.select({ slug: posts.slug }).from(posts).where(eq(posts.id, id)).limit(1);
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 });
 

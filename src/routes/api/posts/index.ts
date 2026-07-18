@@ -1,7 +1,7 @@
 import { and, eq, like, sql } from 'drizzle-orm';
 import { define } from '@/utils.ts';
 import { isAdmin, requireAdmin } from '@/lib/auth.ts';
-import { getDB } from '@/lib/db.ts';
+import { getDB, resolveSeriesSlug } from '@/lib/db.ts';
 import { posts } from '@/lib/db-schema.ts';
 import { putPostContent } from '@/lib/content.ts';
 
@@ -44,7 +44,10 @@ export const handler = define.handlers({
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const { slug, title, content, excerpt, tags, published, publishedAt } = body as Record<string, unknown>;
+    const { slug, title, content, excerpt, tags, published, publishedAt, seriesSlug, seriesOrder } = body as Record<
+      string,
+      unknown
+    >;
 
     if (typeof slug !== 'string' || !slug) {
       return Response.json({ error: '`slug` is required' }, { status: 422 });
@@ -53,10 +56,13 @@ export const handler = define.handlers({
       return Response.json({ error: '`title` is required' }, { status: 422 });
     }
 
+    const db = getDB(ctx);
+    const resolved = await resolveSeriesSlug(db, seriesSlug ?? null);
+    if (resolved instanceof Response) return resolved;
+
     // Insert the metadata row first: a duplicate slug fails fast here without
     // touching the existing post's R2 object. Roll the row back if the R2
     // write fails so the two stores never drift.
-    const db = getDB(ctx);
     const [post] = await db
       .insert(posts)
       .values({
@@ -66,6 +72,8 @@ export const handler = define.handlers({
         tags: Array.isArray(tags) ? tags.filter((t): t is string => typeof t === 'string') : [],
         published: published === true,
         publishedAt: publishedAt ? new Date(publishedAt as string) : null,
+        seriesId: resolved.id,
+        seriesOrder: typeof seriesOrder === 'number' ? seriesOrder : null,
       })
       .returning();
 
