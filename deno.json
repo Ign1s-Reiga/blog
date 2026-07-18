@@ -1,29 +1,70 @@
 {
   "license": "MIT",
   "imports": {
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
-    "@eslint/js": "npm:@eslint/js@^9.28.0",
-    "@hono/vite-dev-server": "npm:@hono/vite-dev-server@^0.19.1",
-    "@hono/vite-ssg": "npm:@hono/vite-ssg@^0.1.2",
-    "@kuma-ui/core": "npm:@kuma-ui/core@^1.5.9",
-    "@kuma-ui/vite": "npm:@kuma-ui/vite@^1.4.0",
-    "@stylistic/eslint-plugin": "npm:@stylistic/eslint-plugin@^4.4.0",
-    "eslint": "npm:eslint@^9.28.0",
-    "hono": "npm:hono@^4.7.10",
-    "typescript-eslint": "npm:typescript-eslint@^8.33.0",
-    "vite": "npm:vite@^6.3.5"
+    "./src/server": "./src/server.ts",
+    "@/": "./src/",
+    "@cloudflare/vite-plugin": "npm:@cloudflare/vite-plugin@^1.45.0",
+    "@cloudflare/workers-types": "npm:@cloudflare/workers-types@^4.20260702.1",
+    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^1.1.2",
+    "@ign1s-reiga/marked-presets": "npm:@ign1s-reiga/marked-presets@0.4.3",
+    "@libsql/client": "npm:@libsql/client@^0.17.4",
+    "@preact/signals": "npm:@preact/signals@^2.9.4",
+    "@std/path": "jsr:@std/path@1.1.6",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.3.2",
+    "drizzle-kit": "npm:drizzle-kit@^0.31.10",
+    "drizzle-orm": "npm:drizzle-orm@^0.45.2",
+    "fresh": "jsr:@fresh/core@^2.3.3",
+    "ky": "npm:ky@^2.0.2",
+    "lucide-preact": "npm:lucide-preact@^1.24.0",
+    "oxfmt": "npm:oxfmt@^0.59.0",
+    "oxlint": "npm:oxlint@^1.74.0",
+    "preact": "npm:preact@^10.29.7",
+    "tailwindcss": "npm:tailwindcss@^4.3.2",
+    "vite": "npm:vite@^7.3.6",
+    "wrangler": "npm:wrangler@^4.111.0"
   },
   "tasks": {
-    "build": "deno run -A --node-modules-dir npm:vite build",
-    "dev": "deno run -A --node-modules-dir npm:vite",
-    "preview": "deno run -A --node-modules-dir npm:vite preview",
-    "serve": "deno run -NR jsr:@std/http@1/file-server dist/",
-    "lint": "deno run -A --node-modules-dir npm:eslint",
-    "format": "deno run -A --node-modules-dir npm:eslint --fix ."
+    "build": "vite build",
+    "dev": "deno run -A dev.ts",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply DB",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
+  "exclude": ["**/_fresh/*"],
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "strict": true,
+    "lib": ["esnext", "deno.window"],
     "jsx": "precompile",
-    "jsxImportSource": "hono/jsx"
-  }
+    "jsxImportSource": "preact",
+    "jsxPrecompileSkipElements": [
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+      "title",
+      "meta",
+      "script",
+      "link",
+      "style",
+      "base",
+      "noscript",
+      "template"
+    ],
+    "types": ["vite/client", "@cloudflare/workers-types/experimental", "./worker-configuration.d.ts"]
+  },
+  "nodeModulesDir": "auto",
+  "allowScripts": [
+    "npm:esbuild@0.25.12",
+    "npm:esbuild@0.25.7",
+    "npm:esbuild@0.27.3",
+    "npm:esbuild@0.28.1",
+    "npm:sharp@0.34.5",
+    "npm:workerd@1.20260710.1"
+  ]
 }

@@ -1,27 +1,39 @@
-name: deploy-website
+name: Deploy to Cloudflare Workers
+
 on:
   push:
     branches:
-      - master
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-workers
+  cancel-in-progress: false
+
 jobs:
-  build:
-    if: github.actor != 'github'
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v7
+
+      - uses: denoland/setup-deno@v2
         with:
-          node-version: '16'
-          cache: yarn
-      - name: Install Packages
-        run: yarn install --immutable --immutable-cache
-      - name: Build Sourcecode
-        run: yarn build
-      - name: Export from Built files
-        run: yarn export
+          deno-version: v2.x
+
+      - name: Install dependencies
+        run: deno install --frozen
+
+      - name: Apply D1 migrations
+        run: deno task db:migrate --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Build
+        run: deno task build
+
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: out
-          cname: blog.reiga7953.net
+        run: deno task deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

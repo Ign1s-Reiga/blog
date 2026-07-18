@@ -1,0 +1,16 @@
+"$schema" = "./node_modules/.deno/wrangler@4.86.0/node_modules/wrangler/config-schema.json"
+name = "blog"
+main = "./src/server.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+database_id = "8644185d-5b56-420a-869b-34c254345549"
+migrations_dir = ".drizzle"
+
+# R2 Bucket の設定
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "blog-archives"

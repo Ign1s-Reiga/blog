@@ -1,0 +1,1 @@
+ALTER TABLE `blog-db` DROP COLUMN `content`;
