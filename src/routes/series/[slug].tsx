@@ -1,9 +1,8 @@
-import { and, asc, eq } from 'drizzle-orm';
 import { HttpError, page } from 'fresh';
 import { define } from '@/utils.ts';
 import Header from '@/components/Header.tsx';
 import { getDB } from '@/lib/db.ts';
-import { posts, series } from '@/lib/db-schema.ts';
+import { getSeriesBySlug, getSeriesMembers } from '@/lib/posts.ts';
 
 interface SeriesPagePost {
   slug: string;
@@ -30,19 +29,10 @@ function formatDate(iso: string): string {
 export const handler = define.handlers({
   async GET(ctx) {
     const db = getDB(ctx);
-    const [s] = await db.select().from(series).where(eq(series.slug, ctx.params.slug)).limit(1);
+    const s = await getSeriesBySlug(db, ctx.params.slug);
     if (!s) throw new HttpError(404);
 
-    const members = await db
-      .select({
-        slug: posts.slug,
-        title: posts.title,
-        excerpt: posts.excerpt,
-        publishedAt: posts.publishedAt,
-      })
-      .from(posts)
-      .where(and(eq(posts.seriesId, s.id), eq(posts.published, true)))
-      .orderBy(asc(posts.seriesOrder));
+    const members = await getSeriesMembers(db, s.id);
 
     return page<SeriesPageData>({
       title: s.title,

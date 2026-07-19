@@ -1,7 +1,7 @@
 import { and, asc, eq, like, sql } from 'drizzle-orm';
 import { getDB } from '@/lib/db.ts';
 import { posts, series } from '@/lib/db-schema.ts';
-import type { Post } from '@/lib/db-schema.ts';
+import type { Post, Series } from '@/lib/db-schema.ts';
 
 type DB = ReturnType<typeof getDB>;
 
@@ -90,4 +90,31 @@ export async function getSeriesNav(db: DB, post: Post): Promise<SeriesNav | unde
     prev: members[index - 1] ?? null,
     next: members[index + 1] ?? null,
   };
+}
+
+export async function getSeriesBySlug(db: DB, slug: string): Promise<Series | null> {
+  const [s] = await db.select().from(series).where(eq(series.slug, slug)).limit(1);
+  return s ?? null;
+}
+
+export interface SeriesMember {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  publishedAt: Date | null;
+}
+
+/** Published parts of a series, in reading order (by `seriesOrder`). */
+export async function getSeriesMembers(db: DB, seriesId: number): Promise<SeriesMember[]> {
+  const members = await db
+    .select({
+      slug: posts.slug,
+      title: posts.title,
+      excerpt: posts.excerpt,
+      publishedAt: posts.publishedAt,
+    })
+    .from(posts)
+    .where(and(eq(posts.seriesId, seriesId), eq(posts.published, true)))
+    .orderBy(asc(posts.seriesOrder));
+  return members;
 }
