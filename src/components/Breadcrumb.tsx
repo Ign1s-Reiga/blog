@@ -23,7 +23,7 @@ const Breadcrumb = ({ items }: BreadcrumbProps) => {
                 {item.label}
               </a>
             ) : (
-              <span aria-current='page'>{item.label}</span>
+              <span aria-current={index === items.length - 1 ? 'page' : undefined}>{item.label}</span>
             )}
           </li>
         ))}

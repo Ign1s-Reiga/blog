@@ -48,7 +48,7 @@ export const handler = define.handlers({
 });
 
 export default define.page<typeof handler>(function SeriesPage({ data }) {
-  const breadcrumbs = [{ label: 'Home', href: '/' }, { label: 'Posts', href: '/posts' }, { label: data.title }];
+  const breadcrumbs = [{ label: 'Home', href: '/' }, { label: 'Series' }, { label: data.title }];
 
   return (
     <main class='grow px-6 py-12'>
