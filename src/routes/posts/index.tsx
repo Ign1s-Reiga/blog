@@ -22,7 +22,7 @@ export const handler = define.handlers({
     const query = ctx.url.searchParams.get('q')?.trim() ?? '';
     const pageNum = Math.max(1, Number(ctx.url.searchParams.get('page') ?? '1'));
 
-    // Same source as GET /api/posts, called in-process. The public listing
+    // Sourced in-process from the shared data module. The public listing
     // never exposes drafts, so it stays published-only regardless of caller.
     const db = getDB(ctx);
     const { rows, total } = await listPosts(db, {
