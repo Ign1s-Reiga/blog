@@ -31,6 +31,4 @@ export const posts = sqliteTable('blog-db', {
 });
 
 export type Post = typeof posts.$inferSelect;
-export type NewPost = typeof posts.$inferInsert;
 export type Series = typeof series.$inferSelect;
-export type NewSeries = typeof series.$inferInsert;
