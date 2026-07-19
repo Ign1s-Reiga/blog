@@ -66,6 +66,7 @@ export default define.page<typeof handler>(function Article({ data }) {
   const breadcrumbs = [{ label: 'Home', href: '/' }, { label: 'Posts', href: '/posts' }, { label: data.title }];
 
   const hasDate = data.posted || data.updated;
+  const series = data.series;
 
   return (
     <main class='grow px-6 py-12'>
@@ -74,6 +75,14 @@ export default define.page<typeof handler>(function Article({ data }) {
         <article class='mt-12'>
           <header class='mb-8'>
             <h1 class='text-4xl font-bold leading-tight text-(--ui-text-primary)'>{data.title}</h1>
+            {series && (
+              <p class='mt-2 text-xl text-(--ui-text-secondary)'>
+                <a href={`/series/${series.slug}`} class='font-medium text-(--ui-text-primary) hover:underline'>
+                  {series.title}
+                </a>
+                : Part {series.part}
+              </p>
+            )}
             <div class='flex flex-wrap items-start justify-between gap-x-4 gap-y-2 mt-3'>
               <div class='flex flex-wrap gap-2'>
                 {data.tags.map((tag) => (
@@ -95,39 +104,38 @@ export default define.page<typeof handler>(function Article({ data }) {
               )}
             </div>
           </header>
-          {data.series && (
-            <nav class='mb-8 rounded border border-(--ui-border) bg-(--ui-surface) p-4 text-sm'>
-              <p class='text-(--ui-text-secondary)'>
-                Part {data.series.part} of {data.series.total} in{' '}
-                <a href={`/series/${data.series.slug}`} class='font-medium text-(--ui-text-primary) hover:underline'>
-                  {data.series.title}
+          <TableOfContents headings={data.headings} />
+          <div class='md-body text-(--ui-text-secondary) leading-7' dangerouslySetInnerHTML={{ __html: data.html }} />
+          {series && (series.prev || series.next) && (
+            <nav aria-label='Series navigation' class='mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              {series.prev ? (
+                <a
+                  href={`/posts/${series.prev.slug}`}
+                  class='group flex flex-col gap-1 rounded-lg border border-(--ui-border) bg-(--ui-surface) p-4 transition-colors hover:bg-(--ui-surface-hover)'
+                >
+                  <span class='text-[0.7rem] uppercase tracking-wider text-(--ui-text-secondary)'>
+                    ← Prev Part: #{series.part - 1}
+                  </span>
+                  <span class='text-sm font-medium text-(--ui-text-primary) line-clamp-1'>{series.prev.title}</span>
                 </a>
-              </p>
-              {(data.series.prev || data.series.next) && (
-                <div class='mt-3 flex justify-between gap-4'>
-                  {data.series.prev ? (
-                    <a href={`/posts/${data.series.prev.slug}`} class='text-(--ui-text-secondary) hover:underline'>
-                      ← {data.series.prev.title}
-                    </a>
-                  ) : (
-                    <span />
-                  )}
-                  {data.series.next ? (
-                    <a
-                      href={`/posts/${data.series.next.slug}`}
-                      class='text-right text-(--ui-text-secondary) hover:underline'
-                    >
-                      {data.series.next.title} →
-                    </a>
-                  ) : (
-                    <span />
-                  )}
-                </div>
+              ) : (
+                <span class='hidden sm:block' />
+              )}
+              {series.next ? (
+                <a
+                  href={`/posts/${series.next.slug}`}
+                  class='group flex flex-col items-end gap-1 rounded-lg border border-(--ui-border) bg-(--ui-surface) p-4 text-right transition-colors hover:bg-(--ui-surface-hover)'
+                >
+                  <span class='text-[0.7rem] uppercase tracking-wider text-(--ui-text-secondary)'>
+                    Next Part: #{series.part + 1} →
+                  </span>
+                  <span class='text-sm font-medium text-(--ui-text-primary) line-clamp-1'>{series.next.title}</span>
+                </a>
+              ) : (
+                <span class='hidden sm:block' />
               )}
             </nav>
           )}
-          <TableOfContents headings={data.headings} />
-          <div class='md-body text-(--ui-text-secondary) leading-7' dangerouslySetInnerHTML={{ __html: data.html }} />
         </article>
       </div>
     </main>
