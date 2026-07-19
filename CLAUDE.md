@@ -64,7 +64,7 @@ Tailwind is configured in `tailwind.config.js` and included in the build via `vi
 
 ### Markdown Pipeline
 
-`src/lib/markdown.ts` contains a `@ign1s-reiga/marked-presets` pipeline for converting Markdown to HTML. Articles are served from an external base URL configured via the `ARTICLE_SERVED_BASEURL` environment variable (see `.env.development`). The base URL helper is in `src/lib/defines.ts`.
+Post bodies are stored as Markdown objects in R2 (`posts/<slug>.md`) and read at request time via `getPostContent` in `src/lib/content.ts`; the queryable metadata (title, tags, dates, series membership) lives in D1 (`src/lib/db-schema.ts`). Rendering to HTML uses `renderMarkdown` from `@ign1s-reiga/marked-presets`, imported directly in the post route (`src/routes/posts/[slug].tsx`). Bodies are authored clean by the external CMS, so there is no frontmatter parsing — a leading `# title` in the body is stripped so it doesn't duplicate the title stored in D1.
 
 #### CSS Customization
 

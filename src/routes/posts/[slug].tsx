@@ -1,28 +1,12 @@
-import { and, asc, eq } from 'drizzle-orm';
 import { HttpError, page } from 'fresh';
 import { define } from '@/utils.ts';
 import Header from '@/components/Header.tsx';
 import { getDB } from '@/lib/db.ts';
-import { posts, series } from '@/lib/db-schema.ts';
+import { getPostBySlug, getSeriesNav, type SeriesNav } from '@/lib/posts.ts';
 import { getPostContent } from '@/lib/content.ts';
-import { parseFrontmatter } from '@/lib/markdown.ts';
 import { extractHeadings, type TocEntry } from '@/lib/toc.ts';
 import TableOfContents from '@/islands/TableOfContents.tsx';
 import { renderMarkdown } from '@ign1s-reiga/marked-presets';
-
-interface SeriesLink {
-  slug: string;
-  title: string;
-}
-
-interface SeriesNav {
-  slug: string;
-  title: string;
-  part: number;
-  total: number;
-  prev: SeriesLink | null;
-  next: SeriesLink | null;
-}
 
 interface ArticleData {
   title: string;
@@ -50,7 +34,7 @@ export const handler = define.handlers({
     if (slug.includes('.')) return ctx.next();
 
     const db = getDB(ctx);
-    const [post] = await db.select().from(posts).where(eq(posts.slug, slug)).limit(1);
+    const post = await getPostBySlug(db, slug);
     // Drafts are not served publicly; preview them via the API with the admin
     // token (or against local wrangler dev).
     if (!post || !post.published) throw new HttpError(404);
@@ -58,36 +42,13 @@ export const handler = define.handlers({
     const raw = await getPostContent(ctx, slug);
     if (raw === null) throw new HttpError(404);
 
-    // Metadata (title/tags/dates) comes from D1; a frontmatter block or
-    // leading `# title` in the R2 object is tolerated but stripped so it
-    // doesn't render twice.
-    const { body } = parseFrontmatter(raw);
-    const bodyWithoutTitle = body.replace(/^#\s+.+$/m, '').trimStart();
+    // Metadata (title/tags/dates) comes from D1; a leading `# title` in the R2
+    // object is tolerated but stripped so it doesn't render twice.
+    const bodyWithoutTitle = raw.replace(/^#\s+.+$/m, '').trimStart();
     const html = await renderMarkdown(bodyWithoutTitle);
 
     // Series navigation: position among the published parts, in order.
-    let seriesNav: SeriesNav | undefined;
-    if (post.seriesId !== null) {
-      const [s] = await db.select().from(series).where(eq(series.id, post.seriesId)).limit(1);
-      if (s) {
-        const members = await db
-          .select({ slug: posts.slug, title: posts.title })
-          .from(posts)
-          .where(and(eq(posts.seriesId, s.id), eq(posts.published, true)))
-          .orderBy(asc(posts.seriesOrder));
-        const index = members.findIndex((m) => m.slug === post.slug);
-        if (index !== -1) {
-          seriesNav = {
-            slug: s.slug,
-            title: s.title,
-            part: index + 1,
-            total: members.length,
-            prev: members[index - 1] ?? null,
-            next: members[index + 1] ?? null,
-          };
-        }
-      }
-    }
+    const seriesNav = await getSeriesNav(db, post);
 
     return page<ArticleData>({
       title: post.title,

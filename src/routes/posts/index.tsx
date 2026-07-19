@@ -1,5 +1,7 @@
 import { page } from 'fresh';
 import { define } from '@/utils.ts';
+import { getDB } from '@/lib/db.ts';
+import { listPosts } from '@/lib/posts.ts';
 import Header from '@/components/Header.tsx';
 import { ArticleCard } from '@/components/ArticleCard.tsx';
 import { Pagination } from '@/components/Pagination.tsx';
@@ -15,36 +17,31 @@ interface PostsData {
   total: number;
 }
 
-interface PostsApiResponse {
-  data: { slug: string; title: string; tags: string[] | null }[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
 export const handler = define.handlers({
   async GET(ctx) {
     const query = ctx.url.searchParams.get('q')?.trim() ?? '';
     const pageNum = Math.max(1, Number(ctx.url.searchParams.get('page') ?? '1'));
 
-    const apiUrl = new URL('/api/posts', ctx.url);
-    apiUrl.searchParams.set('page', String(pageNum));
-    apiUrl.searchParams.set('limit', String(PAGE_SIZE));
-    if (query) apiUrl.searchParams.set('q', query);
+    // Same source as GET /api/posts, called in-process. The public listing
+    // never exposes drafts, so it stays published-only regardless of caller.
+    const db = getDB(ctx);
+    const { rows, total } = await listPosts(db, {
+      q: query || undefined,
+      publishedOnly: true,
+      limit: PAGE_SIZE,
+      offset: (pageNum - 1) * PAGE_SIZE,
+    });
 
-    const res = await fetch(apiUrl);
-    const json: PostsApiResponse = await res.json();
-
-    const totalPages = Math.max(1, Math.ceil(json.total / PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const currentPage = Math.min(pageNum, totalPages);
 
-    const articles: Article[] = json.data.map((p) => ({
+    const articles: Article[] = rows.map((p) => ({
       title: p.title,
       href: `/posts/${p.slug}`,
       tags: p.tags ?? undefined,
     }));
 
-    return page<PostsData>({ articles, currentPage, totalPages, query, total: json.total });
+    return page<PostsData>({ articles, currentPage, totalPages, query, total });
   },
 });
 
