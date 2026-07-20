@@ -2,6 +2,7 @@ import { page } from 'fresh';
 import { define } from '@/utils.ts';
 import { getDB } from '@/lib/db.ts';
 import { listPosts } from '@/lib/posts.ts';
+import { getPostThumbnail } from '@/lib/content.ts';
 import Header from '@/components/Header.tsx';
 import { ArticleCard } from '@/components/ArticleCard.tsx';
 import { Pagination } from '@/components/Pagination.tsx';
@@ -31,11 +32,14 @@ export const handler = define.handlers({
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const currentPage = Math.min(pageNum, totalPages);
 
-    const articles: Article[] = rows.map((p) => ({
-      title: p.title,
-      href: `/posts/${p.slug}`,
-      tags: p.tags ?? undefined,
-    }));
+    const articles: Article[] = await Promise.all(
+      rows.map(async (p) => ({
+        title: p.title,
+        href: `/posts/${p.slug}`,
+        tags: p.tags ?? undefined,
+        thumbnail: await getPostThumbnail(ctx, p.slug),
+      })),
+    );
 
     return page<HomeData>({ articles, currentPage, totalPages });
   },
