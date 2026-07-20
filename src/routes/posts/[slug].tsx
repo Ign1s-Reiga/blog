@@ -104,7 +104,7 @@ export default define.page<typeof handler>(function Article({ data }) {
               )}
             </div>
           </header>
-          <TableOfContents headings={data.headings} />
+          <TableOfContents headings={data.headings} title={data.title} />
           <div class='md-body text-(--ui-text-secondary) leading-7' dangerouslySetInnerHTML={{ __html: data.html }} />
           {series && (series.prev || series.next) && (
             <nav aria-label='Series navigation' class='mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2'>
