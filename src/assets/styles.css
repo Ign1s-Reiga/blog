@@ -23,3 +23,40 @@
   --mp-surface-secondary: light-dark(#c7b198, #3d3530);
   --mp-surface-tertiary: light-dark(#b09870, #4a3f35);
 }
+
+/* ── Blog thumbnail: solid placeholder → smooth fade-in on load ── */
+.thumb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--ui-surface); /* solid-color placeholder */
+}
+
+.thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Hidden until loaded. opacity:0 (plus transparent text) keeps the alt text
+     and any broken-image glyph from ever painting; the alt attribute itself
+     stays on the element for accessibility. */
+  opacity: 0;
+  color: transparent;
+  transition: opacity 500ms ease;
+}
+
+.thumb[data-status='loaded'] .thumb-img {
+  opacity: 1;
+}
+
+.thumb[data-status='error'] .thumb-img {
+  display: none; /* hide the broken image; the solid placeholder shows through */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb-img {
+    transition: none;
+  }
+}

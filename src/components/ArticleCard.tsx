@@ -1,3 +1,5 @@
+import Thumbnail from '@/islands/Thumbnail.tsx';
+
 export interface Article {
   title: string;
   href: string;
@@ -17,7 +19,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
     >
       <div class='flex-9 min-h-0'>
         {article.thumbnail ? (
-          <img src={article.thumbnail} alt={article.title} class='w-full h-full object-cover' />
+          <Thumbnail src={article.thumbnail} alt={article.title} />
         ) : (
           <div class='w-full h-full bg-(--ui-surface)' />
         )}
