@@ -20,13 +20,15 @@ function thumbnailKey(slug: string): string {
 
 /**
  * Public <img> src for a post's thumbnail. When the bucket's public base URL is
- * configured (R2_PUBLIC_URL) and the object exists in R2, its public URL is
- * returned; otherwise a per-slug sample image stands in so the card layout can
- * be previewed before real thumbnails are uploaded.
+ * configured (R2_PUBLIC_URL) the object's public URL is returned directly — no
+ * per-post existence check (R2 head) is needed, since a missing object just
+ * 404s and the Thumbnail component falls back to its placeholder on error.
+ * Until the base is set, a per-slug sample image stands in so the card layout
+ * can be previewed before real thumbnails are uploaded.
  */
-export async function getPostThumbnail(ctx: Context<State>, slug: string): Promise<string> {
+export function getPostThumbnail(ctx: Context<State>, slug: string): string {
   const base = (ctx.state.env as { R2_PUBLIC_URL?: string }).R2_PUBLIC_URL;
-  if (base && (await ctx.state.env.BUCKET.head(thumbnailKey(slug)))) {
+  if (base) {
     return `${base.replace(/\/+$/, '')}/${thumbnailKey(slug)}`;
   }
   // TODO: temporary sample — remove once real thumbnails land in R2.
