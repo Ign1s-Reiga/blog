@@ -3,7 +3,7 @@ import { define } from '@/utils.ts';
 import Header from '@/components/Header.tsx';
 import { getDB } from '@/lib/db.ts';
 import { getPostBySlug, getSeriesNav, type SeriesNav } from '@/lib/posts.ts';
-import { getPostContent } from '@/lib/content.ts';
+import { getPostContent, getPostThumbnail } from '@/lib/content.ts';
 import { extractHeadings, type TocEntry } from '@/lib/toc.ts';
 import TableOfContents from '@/islands/TableOfContents.tsx';
 import { renderMarkdown } from '@ign1s-reiga/marked-presets';
@@ -49,6 +49,16 @@ export const handler = define.handlers({
 
     // Series navigation: position among the published parts, in order.
     const seriesNav = await getSeriesNav(db, post);
+
+    ctx.state.head = {
+      title: post.title,
+      type: 'article',
+      description: post.excerpt ?? undefined,
+      image: getPostThumbnail(ctx, slug),
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt.getTime() !== post.createdAt.getTime() ? post.updatedAt.toISOString() : undefined,
+      tags: post.tags ?? undefined,
+    };
 
     return page<ArticleData>({
       title: post.title,

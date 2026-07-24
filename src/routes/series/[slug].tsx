@@ -34,6 +34,8 @@ export const handler = define.handlers({
 
     const members = await getSeriesMembers(db, s.id);
 
+    ctx.state.head = { title: s.title, type: 'website', description: s.description ?? undefined };
+
     return page<SeriesPageData>({
       title: s.title,
       description: s.description,

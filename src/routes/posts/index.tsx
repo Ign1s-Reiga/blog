@@ -36,14 +36,14 @@ export const handler = define.handlers({
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const currentPage = Math.min(pageNum, totalPages);
 
-    const articles: Article[] = await Promise.all(
-      rows.map(async (p) => ({
-        title: p.title,
-        href: `/posts/${p.slug}`,
-        tags: p.tags ?? undefined,
-        thumbnail: await getPostThumbnail(ctx, p.slug),
-      })),
-    );
+    const articles: Article[] = rows.map((p) => ({
+      title: p.title,
+      href: `/posts/${p.slug}`,
+      tags: p.tags ?? undefined,
+      thumbnail: getPostThumbnail(ctx, p.slug),
+    }));
+
+    ctx.state.head = { title: 'Posts', type: 'website' };
 
     return page<PostsData>({ articles, currentPage, totalPages, query, total });
   },
