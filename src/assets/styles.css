@@ -4,24 +4,24 @@
 :root {
   color-scheme: light dark;
 
-  /* UI palette — both themes via light-dark() */
-  --ui-bg: light-dark(#f0ece2, #1e1a17);
-  --ui-surface: light-dark(#dfd3c3, #2a2420);
-  --ui-surface-hover: light-dark(#c7b198, #3d3530);
-  --ui-text-primary: light-dark(#3d3530, #e8e0d5);
-  --ui-text-secondary: light-dark(#6b5c52, #c7b198);
-  --ui-text-muted: light-dark(#c7b198, #8a7060);
-  --ui-border: light-dark(#c7b198, #3d3530);
-  --ui-border-soft: light-dark(#dfd3c3, #2a2420);
-  --ui-on-accent: light-dark(#f0ece2, #e8e0d5);
+  /* UI palette — muted natural earth (linen / stone / moss), both themes via light-dark() */
+  --ui-bg: light-dark(#f0eee4, #1c1b16);
+  --ui-surface: light-dark(#dbd6c4, #26251c);
+  --ui-surface-hover: light-dark(#bfb69c, #38362a);
+  --ui-text-primary: light-dark(#35332a, #e7e4d6);
+  --ui-text-secondary: light-dark(#5f5a4b, #bfb69c);
+  --ui-text-muted: light-dark(#b3ab90, #837a62);
+  --ui-border: light-dark(#bfb69c, #38362a);
+  --ui-border-soft: light-dark(#dbd6c4, #26251c);
+  --ui-on-accent: light-dark(#f0eee4, #e7e4d6);
 
-  /* Warm-palette overrides for @ign1s-reiga/marked-presets */
-  --mp-text-primary: light-dark(#3d3530, #e8e0d5);
-  --mp-text-secondary: light-dark(#6b5c52, #c7b198);
-  --mp-text-ternary: light-dark(#c7b198, #6b5c52);
-  --mp-surface-primary: light-dark(#dfd3c3, #2a2420);
-  --mp-surface-secondary: light-dark(#c7b198, #3d3530);
-  --mp-surface-tertiary: light-dark(#b09870, #4a3f35);
+  /* Natural-earth overrides for @ign1s-reiga/marked-presets */
+  --mp-text-primary: light-dark(#35332a, #e7e4d6);
+  --mp-text-secondary: light-dark(#5f5a4b, #bfb69c);
+  --mp-text-ternary: light-dark(#b3ab90, #5f5a4b);
+  --mp-surface-primary: light-dark(#dbd6c4, #26251c);
+  --mp-surface-secondary: light-dark(#bfb69c, #38362a);
+  --mp-surface-tertiary: light-dark(#a89d78, #443f30);
 }
 
 /* ── Blog thumbnail: solid placeholder → smooth fade-in on load ── */
