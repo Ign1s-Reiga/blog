@@ -11,6 +11,9 @@ dist/
 # dependencies
 node_modules/
 
+# npm registry auth (written by CI, may hold a token)
+.npmrc
+
 # environment variables
 .env
 .env.production

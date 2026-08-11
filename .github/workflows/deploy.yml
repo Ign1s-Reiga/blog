@@ -14,12 +14,26 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v7
 
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
+      # @ign1s-reiga/marked-presets is published to GitHub Packages, which
+      # rejects unauthenticated reads. The package lives under this repo's
+      # owner, so the job's GITHUB_TOKEN is enough — written at runtime so no
+      # token or .npmrc is committed.
+      - name: Authenticate to GitHub Packages
+        run: |
+          {
+            echo "@ign1s-reiga:registry=https://npm.pkg.github.com"
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+          } > .npmrc
 
       - name: Install dependencies
         run: deno install --frozen
