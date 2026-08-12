@@ -42,7 +42,7 @@ jobs:
       - name: Placeholder for the Fresh build artifact
         run: |
           mkdir -p _fresh
-          echo "throw new Error('placeholder: _fresh/server.js was not replaced by the build');" > _fresh/server.js
+          echo "export default { fetch() { throw new Error('placeholder: _fresh/server.js was not replaced by the build'); } };" > _fresh/server.js
 
       - name: Install dependencies
         run: deno install --frozen
