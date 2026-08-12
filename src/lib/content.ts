@@ -10,9 +10,13 @@ import type { State } from '@/utils.ts';
 //   posts/<slug>/<sha256>.avif    an image used in the body
 //
 // Writes are owned by the external CMS (Ign1s-Reiga/blog-cms-app), which states
-// the same layout in src-tauri/src/media_keys.rs. The two are a contract:
-// changing either one without the other silently breaks image loading, since a
-// missing object 404s rather than failing the build.
+// the same layout in src-tauri/src/media_keys.rs. Only the thumbnail is derived
+// here: it has a fixed name so its URL follows from the slug alone. Body images
+// carry their absolute URL in the Markdown, written by the CMS at publish.
+//
+// R2_PUBLIC_URL must therefore match the CMS's configured public URL. A
+// mismatch breaks images silently, since a missing object 404s rather than
+// failing the build.
 function postKey(slug: string): string {
   return `posts/${slug}.md`;
 }
@@ -36,41 +40,19 @@ function publicBase(ctx: Context<State>): string | undefined {
   return base ? base.replace(/\/+$/, '') : undefined;
 }
 
-/** A target that already points somewhere absolute needs no rewriting. */
-function isAbsolute(url: string): boolean {
-  return /^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith('//') || url.startsWith('/');
-}
-
 /**
- * Rewrite the CMS's bare image references to absolute R2 URLs.
+ * A post's Markdown body, rendered as written.
  *
- * The CMS publishes body images as a bare `<sha256>.avif`, meaning "relative to
- * this post's media prefix" — it deliberately stores no host, so the bucket can
- * move without rewriting published content. Left alone the browser resolves
- * those against /posts/<slug> and 404s, and `renderMarkdown` accepts no
- * base-URL option, so the rewrite happens on the Markdown before rendering.
- *
- * Only Markdown image syntax with a relative target is touched. Raw <img> tags
- * are left alone, as are image links inside fenced code blocks — rewriting
- * those would need a real parse, and the CMS does not produce them.
+ * Body images need no rewriting here: the CMS writes their absolute R2 URLs
+ * into the Markdown at publish time, since it knows both the slug and the
+ * public base. That keeps this side free of the media layout for body images,
+ * and avoids a regex that could never have covered raw <img> tags or image
+ * syntax inside fenced code blocks.
  */
-function resolveBodyImages(md: string, slug: string, base: string): string {
-  const prefix = `${base}/${mediaPrefix(slug)}`;
-  return md.replace(
-    /(!\[[^\]]*\]\()([^)\s]+)/g,
-    (whole: string, head: string, url: string) => (isAbsolute(url) ? whole : `${head}${prefix}${url}`),
-  );
-}
-
 export async function getPostContent(ctx: Context<State>, slug: string): Promise<string | null> {
   const obj = await ctx.state.env.BUCKET.get(postKey(slug));
   if (!obj) return null;
-
-  const md = await obj.text();
-  // Without a public bucket URL there is nowhere to point images at, so the
-  // body is served as written (local dev against `wrangler dev`).
-  const base = publicBase(ctx);
-  return base ? resolveBodyImages(md, slug, base) : md;
+  return await obj.text();
 }
 
 /**
