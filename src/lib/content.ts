@@ -15,7 +15,7 @@ export async function getPostContent(ctx: Context<State>, slug: string): Promise
 }
 
 function thumbnailKey(slug: string): string {
-  return `posts/${slug}/thumbnail.jpg`;
+  return `posts/${slug}/thumbnail.avif`;
 }
 
 /**
