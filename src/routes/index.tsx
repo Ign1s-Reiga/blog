@@ -43,7 +43,7 @@ export const handler = define.handlers({
   },
 });
 
-export default define.page<typeof handler>(function Home({ data }) {
+export default define.page<typeof handler>(function Home({ data, url }) {
   const breadcrumbs = [{ label: 'Home' }];
 
   return (
@@ -69,7 +69,7 @@ export default define.page<typeof handler>(function Home({ data }) {
             <p class='text-(--ui-text-secondary) text-[0.95rem]'>No posts yet — check back soon.</p>
           )}
         </section>
-        <Pagination currentPage={data.currentPage} totalPages={data.totalPages} />
+        <Pagination currentPage={data.currentPage} totalPages={data.totalPages} searchParams={url.searchParams} />
       </div>
     </main>
   );

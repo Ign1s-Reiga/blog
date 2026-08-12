@@ -1,16 +1,26 @@
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
+  /** The request's query params. Everything but `page` is carried into the links. */
+  searchParams?: URLSearchParams;
 }
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, searchParams }: PaginationProps) {
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < totalPages;
+
+  // A bare `?page=N` replaces the whole query string, which dropped the active
+  // search when paging through /posts?q=…. Build on top of the current params.
+  const hrefFor = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('page', String(page));
+    return `?${params}`;
+  };
 
   return (
     <nav aria-label='Pagination' class='flex items-center justify-center gap-2 py-8'>
       <a
-        href={hasPrev ? `?page=${currentPage - 1}` : undefined}
+        href={hasPrev ? hrefFor(currentPage - 1) : undefined}
         aria-disabled={!hasPrev}
         class={`px-3 py-1 rounded border text-sm transition-colors ${
           hasPrev
@@ -26,7 +36,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
       </span>
 
       <a
-        href={hasNext ? `?page=${currentPage + 1}` : undefined}
+        href={hasNext ? hrefFor(currentPage + 1) : undefined}
         aria-disabled={!hasNext}
         class={`px-3 py-1 rounded border text-sm transition-colors ${
           hasNext
