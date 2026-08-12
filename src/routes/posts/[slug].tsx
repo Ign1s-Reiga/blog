@@ -18,6 +18,20 @@ interface ArticleData {
   series?: SeriesNav;
 }
 
+/**
+ * Drop a leading `# title` line so it doesn't render above the title D1 already
+ * supplies. Anchored to the very start of the body: the previous multiline
+ * pattern matched the first `# ` line *anywhere*, so a body that opens without
+ * a title — the CMS's normal output — lost whatever ATX heading came first,
+ * including a `# comment` inside a fenced code block.
+ */
+function stripLeadingTitle(md: string): string {
+  return md
+    .trimStart()
+    .replace(/^#[ \t]+\S[^\n]*(?:\r?\n|$)/, '')
+    .trimStart();
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -44,8 +58,7 @@ export const handler = define.handlers({
 
     // Metadata (title/tags/dates) comes from D1; a leading `# title` in the R2
     // object is tolerated but stripped so it doesn't render twice.
-    const bodyWithoutTitle = raw.replace(/^#\s+.+$/m, '').trimStart();
-    const html = await renderMarkdown(bodyWithoutTitle);
+    const html = await renderMarkdown(stripLeadingTitle(raw));
 
     // Series navigation: position among the published parts, in order.
     const seriesNav = await getSeriesNav(db, post);
