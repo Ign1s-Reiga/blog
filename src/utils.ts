@@ -25,16 +25,24 @@ export interface State {
 export const define = createDefine<State>();
 
 /**
- * A `?page=` value as a whole number ≥ 1; anything else is the first page.
+ * A `?page=` value as a whole number ≥ 1, small enough to page with.
  *
  * `Math.max(1, Number(v))` is not enough on its own — `Number('abc')` is NaN
  * and `Math.max` propagates NaN instead of clamping it, which reached D1 as
  * `OFFSET NaN` and rendered the pager as "NaN / 3". `Number(null)` is 0, so a
  * missing param clamps to 1 without a separate default.
+ *
+ * Rejecting non-finite input is not enough either: `1e308` is finite and
+ * survives it, but `(page - 1) * pageSize` then overflows to Infinity and D1
+ * rejects the bind with a 500. `pageSize` is taken here so the result is capped
+ * where that product is still an exact integer. Anything capped is far past the
+ * end of a real listing, so the caller's bounds check redirects it to the last
+ * page like any other overshoot.
  */
-export function parsePageParam(value: string | null): number {
+export function parsePageParam(value: string | null, pageSize: number): number {
   const page = Number(value);
-  return Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+  if (!Number.isFinite(page)) return 1;
+  return Math.min(Math.max(1, Math.floor(page)), Math.floor(Number.MAX_SAFE_INTEGER / pageSize));
 }
 
 /**

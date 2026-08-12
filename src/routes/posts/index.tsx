@@ -21,7 +21,7 @@ interface PostsData {
 export const handler = define.handlers({
   async GET(ctx) {
     const query = ctx.url.searchParams.get('q')?.trim() ?? '';
-    const pageNum = parsePageParam(ctx.url.searchParams.get('page'));
+    const pageNum = parsePageParam(ctx.url.searchParams.get('page'), PAGE_SIZE);
 
     // Sourced in-process from the shared data module. The public listing
     // never exposes drafts, so it stays published-only regardless of caller.
