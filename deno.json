@@ -29,6 +29,7 @@
     "preview": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:migrate": "wrangler d1 migrations apply DB",
+    "check": "deno check .",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
