@@ -36,3 +36,17 @@ export function parsePageParam(value: string | null): number {
   const page = Number(value);
   return Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
 }
+
+/**
+ * Redirect to another page of the same listing, keeping the rest of the query.
+ *
+ * Temporary, not permanent: which page is the last one moves as posts are
+ * published. Page 1 drops the param entirely so the first page has one URL
+ * rather than two.
+ */
+export function redirectToPage(url: URL, page: number): Response {
+  const target = new URL(url);
+  if (page > 1) target.searchParams.set('page', String(page));
+  else target.searchParams.delete('page');
+  return new Response(null, { status: 302, headers: { location: `${target.pathname}${target.search}` } });
+}
