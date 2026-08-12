@@ -1,5 +1,5 @@
 import { page } from 'fresh';
-import { define } from '@/utils.ts';
+import { define, parsePageParam } from '@/utils.ts';
 import { getDB } from '@/lib/db.ts';
 import { listPosts } from '@/lib/posts.ts';
 import { getPostThumbnail } from '@/lib/content.ts';
@@ -18,7 +18,7 @@ interface HomeData {
 
 export const handler = define.handlers({
   async GET(ctx) {
-    const pageNum = Math.max(1, Number(ctx.url.searchParams.get('page') ?? '1'));
+    const pageNum = parsePageParam(ctx.url.searchParams.get('page'));
 
     // Recent posts, sourced in-process from the shared data module; the public
     // home never lists drafts.
