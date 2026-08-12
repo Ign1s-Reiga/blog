@@ -1,4 +1,4 @@
-import { and, asc, eq, like, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, like, sql } from 'drizzle-orm';
 import { getDB } from '@/lib/db.ts';
 import { posts, series } from '@/lib/db-schema.ts';
 import type { Post, Series } from '@/lib/db-schema.ts';
@@ -23,6 +23,11 @@ export interface ListPostsResult {
  * Paginated post listing used by the `/` and `/posts` pages. The caller owns
  * page/limit → offset math and response shaping; this only runs the filtered
  * query and its matching count.
+ *
+ * Newest first, by `publishedAt`. SQLite sorts NULL below every other value, so
+ * a DESC ordering puts unpublished drafts last when the caller asks for them.
+ * `id` breaks ties: without a total order the same row can appear on two pages
+ * (or on none) as the offset moves.
  */
 export async function listPosts(
   db: DB,
@@ -34,7 +39,7 @@ export async function listPosts(
   const where = conditions.length ? and(...conditions) : undefined;
 
   const [rows, [{ count }]] = await Promise.all([
-    db.select().from(posts).where(where).limit(limit).offset(offset),
+    db.select().from(posts).where(where).orderBy(desc(posts.publishedAt), desc(posts.id)).limit(limit).offset(offset),
     db
       .select({ count: sql<number>`count(*)` })
       .from(posts)
