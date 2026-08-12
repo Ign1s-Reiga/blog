@@ -1,5 +1,5 @@
 import { page } from 'fresh';
-import { define } from '@/utils.ts';
+import { define, parsePageParam } from '@/utils.ts';
 import { getDB } from '@/lib/db.ts';
 import { listPosts } from '@/lib/posts.ts';
 import { getPostThumbnail } from '@/lib/content.ts';
@@ -21,7 +21,7 @@ interface PostsData {
 export const handler = define.handlers({
   async GET(ctx) {
     const query = ctx.url.searchParams.get('q')?.trim() ?? '';
-    const pageNum = Math.max(1, Number(ctx.url.searchParams.get('page') ?? '1'));
+    const pageNum = parsePageParam(ctx.url.searchParams.get('page'));
 
     // Sourced in-process from the shared data module. The public listing
     // never exposes drafts, so it stays published-only regardless of caller.
