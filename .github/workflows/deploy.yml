@@ -1,7 +1,13 @@
 name: Deploy to Cloudflare Workers
 
 on:
-  push:
+  # Deploy only what arrives via a merged pull request — a direct push to main
+  # no longer ships. pull_request_target (not pull_request) because it runs in the
+  # base branch's context, so github.ref is refs/heads/main; a pull_request run is
+  # refs/pull/<n>/merge, which the production environment's branch policy refuses.
+  pull_request_target:
+    types:
+      - closed
     branches:
       - main
   workflow_dispatch:
@@ -12,6 +18,8 @@ concurrency:
 
 jobs:
   deploy:
+    # A pull request closed without merging must not deploy.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -19,6 +27,10 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The commit the merge produced on main (the squash commit for squash
+          # merges); manual runs fall back to the dispatched ref.
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.ref }}
 
       - uses: denoland/setup-deno@v2
         with:
