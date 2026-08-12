@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, type SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, type SQL, sql } from 'drizzle-orm';
 import { getDB } from '@/lib/db.ts';
 import { posts, series } from '@/lib/db-schema.ts';
 import type { Post, Series } from '@/lib/db-schema.ts';
@@ -24,6 +24,16 @@ export interface ListPostsResult {
 }
 
 /**
+ * Neutralise the `LIKE` wildcards in a user-supplied term so it matches
+ * literally. Without this a search for `%` matched every post, and `_` any
+ * single character. The backslash itself is escaped first, so a searched-for
+ * `\` stays a `\` rather than escaping whatever follows it.
+ */
+function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
+/**
  * `#tag` searches the `tags` array, everything else the title.
  *
  * `tags` is a JSON array in a text column, so `json_each` expands it and each
@@ -34,8 +44,12 @@ export interface ListPostsResult {
  */
 function searchCondition(q: string): SQL {
   const tag = q.startsWith('#') ? q.slice(1).trim() : '';
-  if (!tag) return like(posts.title, `%${q}%`);
-  return sql`exists (select 1 from json_each(coalesce(${posts.tags}, '[]')) where lower(value) = lower(${tag}))`;
+  if (tag) {
+    return sql`exists (select 1 from json_each(coalesce(${posts.tags}, '[]')) where lower(value) = lower(${tag}))`;
+  }
+  // drizzle's `like()` has no place for an ESCAPE clause, so the comparison is
+  // spelled out; without it the backslashes above would be matched literally.
+  return sql`${posts.title} like ${`%${escapeLike(q)}%`} escape '\\'`;
 }
 
 /**
