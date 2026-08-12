@@ -35,6 +35,16 @@ jobs:
             echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
           } > .npmrc
 
+      # deno.json maps "./src/server" into the module graph (worker-configuration.d.ts
+      # refers to it), and src/server.ts imports _fresh/server.js — a `vite build`
+      # artifact that a fresh checkout does not have, so `deno install` cannot resolve
+      # it. The build overwrites this placeholder before the worker bundle is emitted;
+      # it throws so a build that somehow skipped that step fails loudly.
+      - name: Placeholder for the Fresh build artifact
+        run: |
+          mkdir -p _fresh
+          echo "throw new Error('placeholder: _fresh/server.js was not replaced by the build');" > _fresh/server.js
+
       - name: Install dependencies
         run: deno install --frozen
 
