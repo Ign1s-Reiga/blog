@@ -18,7 +18,7 @@ interface HomeData {
 
 export const handler = define.handlers({
   async GET(ctx) {
-    const pageNum = parsePageParam(ctx.url.searchParams.get('page'));
+    const pageNum = parsePageParam(ctx.url.searchParams.get('page'), PAGE_SIZE);
 
     // Recent posts, sourced in-process from the shared data module; the public
     // home never lists drafts.
