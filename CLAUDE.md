@@ -31,15 +31,16 @@ Inside of project, you'll see the following folders and files:
 
 All commands are run from the root of the project, from a terminal:
 
-| Command                | Action                                                                    |
-| :--------------------- | :------------------------------------------------------------------------ |
+| Command                | Action                                                                     |
+| :--------------------- | :------------------------------------------------------------------------- |
 | `deno task dev`        | Runs `dev.ts` — build, serve via `wrangler dev`, rebuild on `src/` changes |
-| `deno task build`      | Production build (`vite build`) into `dist/blog/`                         |
-| `deno task preview`    | Serve the last build with `wrangler dev`                                  |
-| `deno task deploy`     | `wrangler deploy` to Cloudflare Workers                                   |
-| `deno task db:migrate` | Apply D1 migrations (add `--remote` for production)                       |
-| `deno task lint`       | oxlint (`lint:fix` to autofix)                                            |
-| `deno task fmt`        | oxfmt (`fmt:check` to verify)                                             |
+| `deno task build`      | Production build (`vite build`) into `dist/blog/`                          |
+| `deno task preview`    | Serve the last build with `wrangler dev`                                   |
+| `deno task deploy`     | `wrangler deploy` to Cloudflare Workers                                    |
+| `deno task db:migrate` | Apply D1 migrations (add `--remote` for production)                        |
+| `deno task check`      | Type-check every file (`deno check .`)                                     |
+| `deno task lint`       | oxlint (`lint:fix` to autofix)                                             |
+| `deno task fmt`        | oxfmt (`fmt:check` to verify)                                              |
 
 Note that `vite dev` is not used — it is unreliable with the Fresh + Cloudflare plugin combination, so `dev.ts` runs a build/watch loop against `wrangler dev` instead.
 
