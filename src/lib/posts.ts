@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, like, type SQL, sql } from 'drizzle-orm';
 import { getDB } from '@/lib/db.ts';
 import { posts, series } from '@/lib/db-schema.ts';
 import type { Post, Series } from '@/lib/db-schema.ts';
@@ -6,7 +6,11 @@ import type { Post, Series } from '@/lib/db-schema.ts';
 type DB = ReturnType<typeof getDB>;
 
 export interface ListPostsOptions {
-  /** Case-sensitive title substring filter; skipped when empty/undefined. */
+  /**
+   * Search term; skipped when empty/undefined. A leading `#` matches one of the
+   * post's tags exactly, anything else is a title substring. Both are
+   * case-insensitive for ASCII, which is all SQLite's `like`/`lower` fold.
+   */
   q?: string;
   /** Gate drafts. Callers decide based on auth (public listings pass `true`). */
   publishedOnly: boolean;
@@ -17,6 +21,21 @@ export interface ListPostsOptions {
 export interface ListPostsResult {
   rows: Post[];
   total: number;
+}
+
+/**
+ * `#tag` searches the `tags` array, everything else the title.
+ *
+ * `tags` is a JSON array in a text column, so `json_each` expands it and each
+ * element is compared whole — a substring match over the raw JSON would blur
+ * `#rust` into `rustacean`. The column is nullable and `json_each(NULL)` is an
+ * error, hence the coalesce. A lone `#` has no tag to match and falls through
+ * to the title, which is also what the search box's `#tag` hint implies.
+ */
+function searchCondition(q: string): SQL {
+  const tag = q.startsWith('#') ? q.slice(1).trim() : '';
+  if (!tag) return like(posts.title, `%${q}%`);
+  return sql`exists (select 1 from json_each(coalesce(${posts.tags}, '[]')) where lower(value) = lower(${tag}))`;
 }
 
 /**
@@ -34,7 +53,7 @@ export async function listPosts(
   { q, publishedOnly, limit, offset }: ListPostsOptions,
 ): Promise<ListPostsResult> {
   const conditions = [];
-  if (q) conditions.push(like(posts.title, `%${q}%`));
+  if (q) conditions.push(searchCondition(q));
   if (publishedOnly) conditions.push(eq(posts.published, true));
   const where = conditions.length ? and(...conditions) : undefined;
 
