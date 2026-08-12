@@ -8,6 +8,6 @@ export default defineConfig({
   dbCredentials: {
     accountId: Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!,
     databaseId: Deno.env.get('CLOUDFLARE_DATABASE_ID')!,
-    token: Deno.env.get('CLOUDFLARE_D1_TOKEN')!,
+    token: Deno.env.get('CLOUDFLARE_API_TOKEN')!,
   },
 });
