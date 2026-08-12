@@ -16,7 +16,7 @@ const App = define.page(({ Component, state, url }) => {
   const image = head?.image;
 
   return (
-    <html>
+    <html lang='ja'>
       <head>
         <meta charset='utf-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
@@ -39,7 +39,7 @@ const App = define.page(({ Component, state, url }) => {
         <meta property='og:title' content={head?.title ?? SITE_NAME} />
         <meta property='og:description' content={description} />
         <meta property='og:url' content={canonical} />
-        <meta property='og:locale' content='en_US' />
+        <meta property='og:locale' content='ja_JP' />
         {image && <meta property='og:image' content={image} />}
         {image && <meta property='og:image:alt' content={head?.title ?? SITE_NAME} />}
         {ogType === 'article' && head?.publishedTime && (
