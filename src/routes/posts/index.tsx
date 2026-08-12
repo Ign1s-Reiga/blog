@@ -1,5 +1,5 @@
 import { page } from 'fresh';
-import { define, parsePageParam } from '@/utils.ts';
+import { define, parsePageParam, redirectToPage } from '@/utils.ts';
 import { getDB } from '@/lib/db.ts';
 import { listPosts } from '@/lib/posts.ts';
 import { getPostThumbnail } from '@/lib/content.ts';
@@ -34,7 +34,9 @@ export const handler = define.handlers({
     });
 
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-    const currentPage = Math.min(pageNum, totalPages);
+    // Past the end there is nothing to show, and clamping only the displayed
+    // number left the pager claiming the last page while the list was empty.
+    if (pageNum > totalPages) return redirectToPage(ctx.url, totalPages);
 
     const articles: Article[] = rows.map((p) => ({
       title: p.title,
@@ -45,7 +47,7 @@ export const handler = define.handlers({
 
     ctx.state.head = { title: 'Posts', type: 'website' };
 
-    return page<PostsData>({ articles, currentPage, totalPages, query, total });
+    return page<PostsData>({ articles, currentPage: pageNum, totalPages, query, total });
   },
 });
 
