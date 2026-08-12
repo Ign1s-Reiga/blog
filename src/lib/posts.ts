@@ -142,33 +142,3 @@ export async function getSeriesMembers(db: DB, seriesId: number): Promise<Series
     .orderBy(asc(posts.seriesOrder));
   return members;
 }
-
-export interface ListSeriesOptions {
-  /** Case-sensitive title substring filter; skipped when empty/undefined. */
-  q?: string;
-  limit: number;
-  offset: number;
-}
-
-export interface ListSeriesResult {
-  rows: Series[];
-  total: number;
-}
-
-/**
- * Paginated series listing, mirroring `listPosts`. Series have no published
- * flag, so there is no draft gating; the caller owns page/limit → offset math.
- */
-export async function listSeries(db: DB, { q, limit, offset }: ListSeriesOptions): Promise<ListSeriesResult> {
-  const where = q ? like(series.title, `%${q}%`) : undefined;
-
-  const [rows, [{ count }]] = await Promise.all([
-    db.select().from(series).where(where).limit(limit).offset(offset),
-    db
-      .select({ count: sql<number>`count(*)` })
-      .from(series)
-      .where(where),
-  ]);
-
-  return { rows, total: count };
-}
