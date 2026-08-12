@@ -98,7 +98,7 @@ export default define.page<typeof handler>(function Article({ data }) {
                 {data.tags.map((tag) => (
                   <a
                     key={tag}
-                    href={`/posts?q=%23${tag}`}
+                    href={`/posts?q=${encodeURIComponent(`#${tag}`)}`}
                     class='text-xs text-(--ui-text-secondary) bg-(--ui-surface) px-2 py-1 rounded hover:bg-(--ui-surface-hover) hover:text-(--ui-on-accent) transition-colors'
                   >
                     #{tag}
